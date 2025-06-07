@@ -33,7 +33,7 @@ jobs:
       - name: Prepare artifact for deployment
         run: |
           mkdir -p deploy
-          # Standaloneモードのビルド成果物をコピー
+          # Standaloneモードのビルド成果物ディレクトリをまるごとコピー
           cp -r ./build ./deploy/
           # server.jsは確実にコピー
           cp server.js ./deploy/
