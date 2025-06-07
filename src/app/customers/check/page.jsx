@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import OneCustomerInfoCard from "@/app/components/one_customer_info_card.jsx";
 
@@ -20,7 +20,7 @@ async function fetchCustomer(id) {
   }
 }
 
-export default function ReadPage() {
+function CustomerCheckContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -58,5 +58,13 @@ export default function ReadPage() {
         一覧に戻る
       </button>
     </>
+  );
+}
+
+export default function ReadPage() {
+  return (
+    <Suspense fallback={<div className="loading loading-spinner loading-lg"></div>}>
+      <CustomerCheckContent />
+    </Suspense>
   );
 }

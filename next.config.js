@@ -8,6 +8,10 @@ const nextConfig = {
     // 静的生成から動的ページを除外
     skipTrailingSlashRedirect: true,
     skipMiddlewareUrlNormalize: true,
+    // useSearchParamsのSuspenseエラーを回避する
+    experimental: {
+        missingSuspenseWithCSRBailout: true
+    },
 }
 
 module.exports = nextConfig
