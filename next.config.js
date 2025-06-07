@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
-    // すべてのNext.js環境変数は自動的に取り込まれます
-    // NEXT_PUBLIC_プレフィックスを持つ環境変数はクライアントサイドで利用可能になります
+    // Azureデプロイに最適な設定
+    distDir: 'build',
+    // クライアントサイドレンダリングのみを強制
+    reactStrictMode: true,
+    swcMinify: true,
+    // 静的生成を無効化して動的ルートの問題を回避
+    trailingSlash: true,
 }
 
 module.exports = nextConfig
