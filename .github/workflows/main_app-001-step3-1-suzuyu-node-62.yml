@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p deploy
           # Standaloneモードのビルド成果物をコピー
-          cp -r ./build/* ./deploy/
+          cp -r ./build ./deploy/
           # server.jsは確実にコピー
           cp server.js ./deploy/
           cp web.config ./deploy/
