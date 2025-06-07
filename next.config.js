@@ -1,11 +1,8 @@
-require('dotenv').config()
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
-    env: {
-        // Reference a variable that was defined in the .env file and make it available at Build Time
-        API_ENDPOINT: process.env.API_ENDPOINT,
-    },
+    // すべてのNext.js環境変数は自動的に取り込まれます
+    // NEXT_PUBLIC_プレフィックスを持つ環境変数はクライアントサイドで利用可能になります
 }
 
 module.exports = nextConfig
