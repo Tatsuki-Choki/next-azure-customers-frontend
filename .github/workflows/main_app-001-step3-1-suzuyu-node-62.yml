@@ -34,7 +34,13 @@ jobs:
         run: |
           mkdir -p deploy
           cp -r ./build ./deploy/
-          cp -r ./public ./deploy/
+          # Check if public directory exists before copying
+          if [ -d "./public" ]; then
+            cp -r ./public ./deploy/
+          else
+            # Create an empty public directory if it doesn't exist
+            mkdir -p ./deploy/public
+          fi
           cp next.config.js ./deploy/
           cp package.json ./deploy/
 
