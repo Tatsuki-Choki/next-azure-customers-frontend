@@ -5,9 +5,9 @@ const nextConfig = {
     distDir: 'build',
     // クライアントサイドレンダリングのみを強制
     reactStrictMode: true,
-    swcMinify: true,
-    // 静的生成を無効化して動的ルートの問題を回避
-    trailingSlash: true,
+    // 静的生成から動的ページを除外
+    skipTrailingSlashRedirect: true,
+    skipMiddlewareUrlNormalize: true,
 }
 
 module.exports = nextConfig
