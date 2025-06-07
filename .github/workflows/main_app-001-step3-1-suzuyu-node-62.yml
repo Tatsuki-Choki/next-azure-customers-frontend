@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -27,25 +27,103 @@ jobs:
         env:
           NEXT_PUBLIC_API_ENDPOINT: ${{ secrets.NEXT_PUBLIC_API_ENDPOINT }}
         run: |
+          echo "=== Starting npm install ==="
           npm install
+          
+          echo "=== Starting npm build ==="
           npm run build
+          
+          echo "=== Build completed. Checking output ==="
+          ls -la
+          
+          echo "=== Checking .next directory ==="
+          if [ -d ".next" ]; then
+            ls -la .next/
+            if [ -d ".next/standalone" ]; then
+              echo "=== .next/standalone found ==="
+              ls -la .next/standalone/
+            else
+              echo "=== .next/standalone NOT found ==="
+            fi
+          fi
+          
+          echo "=== Checking build directory ==="
+          if [ -d "build" ]; then
+            ls -la build/
+            if [ -d "build/standalone" ]; then
+              echo "=== build/standalone found ==="
+              ls -la build/standalone/
+            else
+              echo "=== build/standalone NOT found ==="
+            fi
+          fi
 
       - name: Prepare artifact for deployment
         run: |
           mkdir -p deploy
-          # Next.js standaloneモードの正しいファイル構造をコピー
-          cp -r .next/standalone/* ./deploy/
-          # 静的ファイルをコピー
-          cp -r .next/static ./deploy/.next/
+          
+          # standaloneディレクトリを探してコピー
+          if [ -d ".next/standalone" ]; then
+            echo "=== Copying from .next/standalone ==="
+            cp -r .next/standalone/* ./deploy/
+            
+            # 静的ファイルをコピー
+            mkdir -p ./deploy/.next
+            cp -r .next/static ./deploy/.next/
+            
+          elif [ -d "build/standalone" ]; then
+            echo "=== Copying from build/standalone ==="
+            cp -r build/standalone/* ./deploy/
+            
+            # 静的ファイルをコピー
+            mkdir -p ./deploy/build
+            cp -r build/static ./deploy/build/
+            
+          else
+            echo "ERROR: No standalone directory found!"
+            echo "Please check your next.config.js output setting"
+            exit 1
+          fi
+          
           # publicフォルダをコピー（存在する場合）
           if [ -d "./public" ]; then
+            echo "=== Copying public directory ==="
             cp -r ./public ./deploy/
+          else
+            echo "=== No public directory found ==="
           fi
-          # package.jsonをコピー（必要な場合）
-          cp package.json ./deploy/
+          
+          # web.configをコピー（存在する場合）
+          if [ -f "./web.config" ]; then
+            echo "=== Copying web.config ==="
+            cp web.config ./deploy/
+          else
+            echo "=== No web.config found ==="
+          fi
+          
+          # package.jsonをコピー
+          if [ -f "./package.json" ]; then
+            echo "=== Copying package.json ==="
+            cp package.json ./deploy/
+          fi
+          
+          echo "=== Deploy directory structure ==="
+          ls -la ./deploy/
+          
+          echo "=== Checking for server.js in deploy directory ==="
+          if [ -f "./deploy/server.js" ]; then
+            echo "server.js found in deploy directory"
+            head -n 20 ./deploy/server.js
+          else
+            echo "WARNING: server.js not found in deploy directory!"
+          fi
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./deploy -r
+        run: |
+          echo "=== Creating deployment package ==="
+          cd deploy && zip -r ../release.zip . && cd ..
+          echo "=== Deployment package created ==="
+          ls -la release.zip
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -67,8 +145,12 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
+        run: |
+          echo "=== Unzipping deployment package ==="
+          unzip release.zip -d deploy
+          echo "=== Deployment package contents ==="
+          ls -la deploy/
+          
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -77,3 +159,8 @@ jobs:
           slot-name: 'Production'
           package: ./deploy
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60447AD589BF4AB499ECF2B4ED432D0A }}
+          
+      - name: Post deployment check
+        run: |
+          echo "=== Deployment completed ==="
+          echo "App URL: ${{ steps.deploy-to-webapp.outputs.webapp-url }}"
