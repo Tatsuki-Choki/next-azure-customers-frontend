@@ -33,28 +33,16 @@ jobs:
       - name: Prepare artifact for deployment
         run: |
           mkdir -p deploy
-          # Standaloneモードのビルド成果物をコピー
-          cp -r ./build ./deploy/
-          # server.jsは確実にコピー
-          cp server.js ./deploy/
-          cp web.config ./deploy/
-          # パッケージ関連ファイルをコピー
-          cp package.json ./deploy/
-          cp next.config.js ./deploy/
-          # Check if public directory exists before copying
+          # Next.js standaloneモードの正しいファイル構造をコピー
+          cp -r .next/standalone/* ./deploy/
+          # 静的ファイルをコピー
+          cp -r .next/static ./deploy/.next/
+          # publicフォルダをコピー（存在する場合）
           if [ -d "./public" ]; then
             cp -r ./public ./deploy/
-          else
-            # Create an empty public directory if it doesn't exist
-            mkdir -p ./deploy/public
           fi
-          # Next.jsの要件に応じてキャッシュを保持
-          mkdir -p ./deploy/.next
-          if [ -d "./build/.next/cache" ]; then
-            cp -r ./build/.next/cache ./deploy/.next/
-          fi
-          # スタートアップスクリプトの設置
-          echo "web: node server.js" > ./deploy/Procfile
+          # package.jsonをコピー（必要な場合）
+          cp package.json ./deploy/
 
       - name: Zip artifact for deployment
         run: zip release.zip ./deploy -r
